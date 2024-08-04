@@ -1,7 +1,9 @@
 const puppeteer = require("puppeteer");
+const { PuppeteerScreenRecorder } = require("puppeteer-screen-recorder");
 const nodemailer = require("nodemailer");
 const schedule = require("node-schedule");
 const express = require("express");
+const fs = require("fs");
 require("dotenv").config();
 
 const BOT_EMAILID = process.env.BOT_EMAILID;
@@ -34,9 +36,8 @@ const sendEmail = async (subject, text, attachment) => {
   if (attachment) {
     mailOptions.attachments = [
       {
-        filename: 'screenshot.png',
+        filename: 'screenrecord.mp4',
         content: attachment,
-        encoding: 'base64'
       }
     ];
   }
@@ -77,6 +78,11 @@ const naukriAutoUpdate = async (emailID, password) => {
       });
     });
 
+    const recorder = new PuppeteerScreenRecorder(page);
+    const recordingPath = '/tmp/screenrecord.mp4';
+
+    await recorder.start(recordingPath);
+    
     await page.goto("https://www.naukri.com/nlogin/login", { waitUntil: "networkidle2" });
     await randomDelay(1000, 3000);
     console.log("Navigated to Naukri login page");
@@ -95,16 +101,15 @@ const naukriAutoUpdate = async (emailID, password) => {
     await randomDelay(2000, 4000);
     console.log("Submitted login form");
 
-    // Take screenshot before waiting for the selector
-    const screenshot = await page.screenshot({ encoding: 'base64' });
-
     try {
       await page.waitForSelector(".dashboard-container", { timeout: 90000 });
       console.log("Login successful");
     } catch (error) {
       console.error("Error waiting for .dashboard-container:", error);
-      await sendEmail("Naukri Update Error", `Error waiting for .dashboard-container: ${error}`, screenshot);
-      throw error;  // rethrow the error to be caught by the outer catch block
+      await recorder.stop();
+      const videoBuffer = fs.readFileSync(recordingPath);
+      await sendEmail("Naukri Update Error", `Error waiting for .dashboard-container: ${error}`, videoBuffer);
+      throw error;
     }
 
     await page.goto("https://www.naukri.com/mnjuser/profile?id=&altresid", { waitUntil: "networkidle2" });
@@ -183,6 +188,9 @@ const naukriAutoUpdate = async (emailID, password) => {
     await sendEmail("Naukri Update Error", `Error in Naukri auto update: ${error}`);
   } finally {
     if (browser) {
+      await recorder.stop();
+      const videoBuffer = fs.readFileSync(recordingPath);
+      await sendEmail("Naukri Update Finished", "Here is the screen recording of the session.", videoBuffer);
       await browser.close();
     }
   }
