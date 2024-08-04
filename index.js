@@ -102,6 +102,21 @@ const naukriAutoUpdate = async (emailID, password) => {
     await randomDelay(2000, 4000); // Wait for a few seconds to allow the OTP page to load
     console.log("Submitted login form");
 
+    // Check for OTP limit error message
+    const otpErrorMessage = await page.evaluate(() => {
+      const errorElement = document.querySelector('.err-container span.erLbl');
+      return errorElement ? errorElement.innerText : null;
+    });
+
+    if (otpErrorMessage && otpErrorMessage.includes("you have reached max limit to generate otp today")) {
+      console.error("Error: " + otpErrorMessage);
+      const videoBuffer = fs.readFileSync(recordingPath);
+      await sendEmail("Naukri Update Error", `Error: ${otpErrorMessage}`, videoBuffer);
+      await recorder.stop();
+      await browser.close();
+      return;
+    }
+
     try {
       await page.waitForSelector(".dashboard-container", { timeout: 90000 });
       console.log("Login successful");
