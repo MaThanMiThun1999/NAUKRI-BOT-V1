@@ -2,7 +2,7 @@ name: Naukri Auto Update Bot
 
 on:
   schedule:
-    - cron: '0 3 * * *' # Runs every day at 9 AM
+    - cron: '58 7 * * *' # Runs every day at 7:58 AM
   workflow_dispatch:
 
 jobs:
