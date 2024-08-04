@@ -1,0 +1,35 @@
+name: Naukri Auto Update Bot
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # Runs every day at 9 AM
+  workflow_dispatch:
+
+jobs:
+  update-profile:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run Naukri Auto Update Bot
+      timeout-minutes: 60
+      run: node index.js
+      env:
+        BOT_EMAILID: ${{ secrets.BOT_EMAILID }}
+        BOT_MAIL_PASSWORD: ${{ secrets.BOT_MAIL_PASSWORD }}
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+        PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
+        NODE_ENV: production
+        RECEIVEING_EMAILID: ${{ secrets.RECEIVEING_EMAILID }}
+        NAUKRI_EMAILID: ${{ secrets.NAUKRI_EMAILID }}
+        NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
