@@ -36,9 +36,9 @@ const sendEmail = async (subject, text, attachment) => {
   if (attachment) {
     mailOptions.attachments = [
       {
-        filename: 'screenrecord.mp4',
+        filename: "screenrecord.mp4",
         content: attachment,
-      }
+      },
     ];
   }
 
@@ -79,10 +79,10 @@ const naukriAutoUpdate = async (emailID, password) => {
     });
 
     const recorder = new PuppeteerScreenRecorder(page);
-    const recordingPath = '/tmp/screenrecord.mp4';
+    const recordingPath = "/tmp/screenrecord.mp4";
 
     await recorder.start(recordingPath);
-    
+
     await page.goto("https://www.naukri.com/nlogin/login", { waitUntil: "networkidle2" });
     await randomDelay(1000, 3000);
     console.log("Navigated to Naukri login page");
@@ -97,8 +97,9 @@ const naukriAutoUpdate = async (emailID, password) => {
     await randomDelay(1000, 2000);
     console.log("Filled login form");
 
-    await page.click("button.waves-effect.waves-light.btn-large.btn-block.btn-bold.blue-btn.textTransform:nth-of-type(1)");
-    await randomDelay(2000, 4000);
+    // Click login button using data-ga-track attribute
+    await page.click("button[data-ga-track='spa-event|login|login|Save||||true']");
+    await randomDelay(2000, 4000); // Wait for a few seconds to allow the OTP page to load
     console.log("Submitted login form");
 
     try {
