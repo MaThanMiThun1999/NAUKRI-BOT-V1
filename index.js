@@ -170,15 +170,21 @@ const naukriAutoUpdate = async (emailID, password) => {
 const emailID = NAUKRI_EMAILID;
 const password = NAUKRI_PASSWORD;
 
+// const getRandomTime = () => {
+//   const start = new Date();
+//   start.setHours(9, 0, 0, 0); // Start time: 9:00 AM
+//   const end = new Date();
+//   end.setHours(10, 0, 0, 0); // End time: 10:00 AM
+//   const randomTime = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+//   return randomTime;
+// };
+
 const getRandomTime = () => {
-  const start = new Date();
-  start.setHours(9, 0, 0, 0); // Start time: 9:00 AM
-  const end = new Date();
-  end.setHours(10, 0, 0, 0); // End time: 10:00 AM
-  const randomTime = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  const now = new Date();
+  const randomMinutes = Math.floor(Math.random() * 2) + 1; // Random minutes between 1 and 60
+  const randomTime = new Date(now.getTime() + randomMinutes * 60000); // Add random minutes to current time
   return randomTime;
 };
-  
 
 const scheduleJob = () => {
   try {
