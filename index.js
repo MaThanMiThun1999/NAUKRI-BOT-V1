@@ -15,7 +15,7 @@ const NODE_ENV = process.env.NODE_ENV;
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const randomDelay = (min, max) => delay(Math.floor(Math.random() * (max - min + 1) + min));
 
-const sendEmail = async (subject, text) => {
+const sendEmail = async (subject, text, attachment) => {
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -24,12 +24,24 @@ const sendEmail = async (subject, text) => {
     },
   });
 
-  let info = await transporter.sendMail({
+  let mailOptions = {
     from: `"Naukri Update Bot" <${BOT_EMAILID}>`,
     to: RECEIVEING_EMAILID,
     subject: subject,
     text: text,
-  });
+  };
+
+  if (attachment) {
+    mailOptions.attachments = [
+      {
+        filename: 'screenshot.png',
+        content: attachment,
+        encoding: 'base64'
+      }
+    ];
+  }
+
+  let info = await transporter.sendMail(mailOptions);
 
   console.log("Email sent: %s", info.messageId);
 };
@@ -83,8 +95,17 @@ const naukriAutoUpdate = async (emailID, password) => {
     await randomDelay(2000, 4000);
     console.log("Submitted login form");
 
-    await page.waitForSelector(".homepage-flow-container", { timeout: 90000 });
-    console.log("Login successful");
+    // Take screenshot before waiting for the selector
+    const screenshot = await page.screenshot({ encoding: 'base64' });
+
+    try {
+      await page.waitForSelector(".dashboard-container", { timeout: 90000 });
+      console.log("Login successful");
+    } catch (error) {
+      console.error("Error waiting for .dashboard-container:", error);
+      await sendEmail("Naukri Update Error", `Error waiting for .dashboard-container: ${error}`, screenshot);
+      throw error;  // rethrow the error to be caught by the outer catch block
+    }
 
     await page.goto("https://www.naukri.com/mnjuser/profile?id=&altresid", { waitUntil: "networkidle2" });
     await randomDelay(2000, 4000);
@@ -170,20 +191,10 @@ const naukriAutoUpdate = async (emailID, password) => {
 const emailID = NAUKRI_EMAILID;
 const password = NAUKRI_PASSWORD;
 
-
-// const getRandomTime = () => {
-//   const start = new Date();
-//   start.setHours(9, 0, 0, 0); // Start time: 9:00 AM
-//   const end = new Date();
-//   end.setHours(10, 0, 0, 0); // End time: 10:00 AM
-//   const randomTime = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-//   return randomTime;
-// };
-
 const getRandomTime = () => {
   const now = new Date();
   const randomMinutes = Math.floor(Math.random() * 2) + 1; // Random minutes between 1 and 60
-  const randomTime = new Date(now.getTime() + randomMinutes * 60000); // Add random minutes to current time
+  const randomTime = new Date(now.getTime() + randomMinutes * 60000);
   return randomTime;
 };
 
