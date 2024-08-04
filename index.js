@@ -83,7 +83,7 @@ const naukriAutoUpdate = async (emailID, password) => {
     await randomDelay(2000, 4000);
     console.log("Submitted login form");
 
-    await page.waitForSelector(".dashboard-container", { timeout: 90000 });
+    await page.waitForSelector(".homepage-flow-container", { timeout: 90000 });
     console.log("Login successful");
 
     await page.goto("https://www.naukri.com/mnjuser/profile?id=&altresid", { waitUntil: "networkidle2" });
@@ -169,6 +169,7 @@ const naukriAutoUpdate = async (emailID, password) => {
 
 const emailID = NAUKRI_EMAILID;
 const password = NAUKRI_PASSWORD;
+
 
 // const getRandomTime = () => {
 //   const start = new Date();
